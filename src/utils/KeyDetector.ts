@@ -3,6 +3,9 @@ import * as fs from 'fs'
 
 export const KEY_REG = /(?:\$t|\$tc|\$d|\$n|\$te|this\.t|i18n\.t|[^\w]t)\(['"]([^]+?)['"]/g
 
+/**
+ * 查找已替换的文本
+ */
 export default class KeyDetector {
   static getKeyByContent(text: string) {
     const keys = (text.match(KEY_REG) || []).map(key =>
@@ -26,5 +29,15 @@ export default class KeyDetector {
     return keyRange
       ? document.getText(keyRange).replace(KEY_REG, '$1')
       : undefined
+  }
+
+  static findMatchKey(langObj, text){
+    for (const key in langObj) {
+      if (langObj[key] === text) {
+        return key;
+      }
+    }
+  
+    return null;
   }
 }

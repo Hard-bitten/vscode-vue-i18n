@@ -124,6 +124,22 @@
       font-weight: bold;
     }
 
+    .extract-result > h3 > span{
+      padding: 0 0 3px 0;
+      color: #79a4de;
+    }
+    .extract-result > h3 > button{
+      margin-left: auto;
+      opacity: 0.3;
+    }
+
+    .extract-result > h3 > button[disabled] {
+      opacity: 1;
+      color: #ccc;
+      background: #555;
+      cursor: progress;
+    }
+
     input {
       width: 100%;
       color: #a7b9d1;
@@ -157,9 +173,45 @@
           <button @click="batchTrans()">
             {{transTasks.length ? '翻译中' : `批量根据zh-CN翻译` }}
           </button>
+          <button @click="batchExtract()">
+            {{transTasks.length ? '翻译中' : `批量提取` }}
+          </button>
         </h2>
         <small>{{ i18nPath }}</small>
       </div>
+
+      <ul v-if="extractResult.length > 0" class="i18n-table extract-result">
+        <h3>
+          <span>提取结果如下:</span>
+          <button
+            @click="trans(i18nItem)"
+            :disabled="loadingMap['saveExtract']">
+            {{loadingMap['saveExtract'] ? `翻译中..` : `确认并修改`}}
+          </button>
+        </h3>
+        <li v-for="(i18nItem, index) in extractResult" :key="extractResult.key" class="item">
+          <ul>
+            <h4>
+              <span>#{{index+1}}</span>
+              <input
+                type="text"
+                v-model="i18nItem.key"
+              />
+              <button @click="del(i18nItem)">删除</button>
+            </h4>
+            <li v-for="transItem in i18nItem.transItems" :key="transItem.lng">
+              <span class="lng" :class="{active: transItem.lng === 'zh-CN'}">{{
+                transItem.lng
+              }}</span>
+              <input
+                type="text"
+                v-model="transItem.data"
+                placeholder="空"
+              />
+            </li>
+          </ul>
+        </li>
+      </ul>
 
       <ul class="i18n-table">
         <li v-for="(i18nItem, index) in i18n" :key="i18nItem.key" class="item">
@@ -198,7 +250,10 @@
         ready: "ready",
         allI18n: "allI18n",
         trans: "trans",
-        writeTrans: "writeTrans"
+        writeTrans: "writeTrans",
+        batchExtract: "batchExtract",
+        extractResult: 'extractResult',
+        transAndRefactor:'transAndRefactor'
       };
 
       window.app = new Vue({
@@ -209,7 +264,8 @@
             i18n: [],
             loadingMap: {},
             transTasks: [],
-            emitTransTimer: null
+            emitTransTimer: null,
+            extractResult: []
           };
         },
         computed: {
@@ -238,7 +294,10 @@
                 this.$set(this.i18n, matchIndex, data);
                 this.$delete(this.loadingMap, data.key);
                 break;
-
+              case EVENT_MAP.extractResult:
+                this.extractResult = data
+                this.loadingMap['saveExtract'] = false
+                break;
               default:
               //
             }
@@ -247,6 +306,9 @@
         methods: {
           batchTrans() {
             this.i18n.forEach(i18Item => this.trans(i18Item));
+          },
+          batchExtract(){
+            vscode.postMessage({ type: EVENT_MAP.batchExtract, data: this.filePath });
           },
           trans(i18nItem) {
             if (this.loadingMap[i18nItem.key]) return;

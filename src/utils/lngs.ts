@@ -19,7 +19,7 @@ export default [
   'cs',
   'da',
   'nl',
-  'en',
+  ['en',['en','en-US','EN']],
   'eo',
   'et',
   'fi',

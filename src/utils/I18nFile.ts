@@ -153,6 +153,23 @@ class I18nFile {
 
     return result
   }
+
+  getAllTrans(){
+    const result = this.getLngs().map(item => {
+      if (!this.files[item.path]) {
+        this.files[item.path] = this.readFile(item.path)
+      }
+
+      const data = this.files[item.path]
+      // const [, ...keyPath] = i18nKey.split('.')
+
+      return {
+        ...item,
+        data
+      }
+    })
+    return result
+  }
 }
 
 export default I18nFile

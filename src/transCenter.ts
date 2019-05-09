@@ -4,26 +4,37 @@ import * as path from 'path'
 
 import Common from './utils/Common'
 import i18nFiles from './utils/i18nFiles'
-
+import {findTextInVue} from './utils/findChineseInVue'
+import {lineToUpperCase} from './utils/transAndRefactor'
 const EVENT_MAP = {
   ready: 'ready',
   allI18n: 'allI18n',
   trans: 'trans',
-  writeTrans: 'writeTrans'
+  writeTrans: 'writeTrans',
+  batchExtract: 'batchExtract',
+  extractResult: 'extractResult',
+  transAndRefactor:'transAndRefactor'
 }
 
 export class TransCenter {
   panel: vscode.WebviewPanel = null
   filePath: string = null
   shortFileName: string = null
-
+  baseKey: string = null
   constructor(filePath: string) {
     this.filePath = filePath
     this.shortFileName = filePath
       .split(path.sep)
       .slice(-3)
       .join(path.sep)
-
+    
+    this.baseKey = filePath
+      .replace('.vue','')
+      .split(path.sep)
+      .slice(-2)
+      .map(lineToUpperCase)
+      .join('.')
+      
     this.panel = vscode.window.createWebviewPanel(
       'transCenter',
       `翻译-${this.shortFileName}`,
@@ -91,6 +102,37 @@ export class TransCenter {
 
         case EVENT_MAP.writeTrans:
           i18nFiles.writeTrans(filePath, data)
+          break
+
+        case EVENT_MAP.batchExtract:
+          const text = fs.readFileSync(this.filePath, 'utf-8')
+          const matches = findTextInVue(text)
+          
+          if(matches && matches.length > 0 ){
+            let extractMap = {}
+            matches.forEach(match=>{
+              if(extractMap[match.chineseText]){
+                extractMap[match.chineseText].range.push(match.range)
+              }else{
+                extractMap[match.chineseText]={
+                  key:`${this.baseKey}.${Common.getUid()}`,
+                  transItems:[
+                    {
+                      lng:'zh-CN',
+                      data: match.chineseText
+                    }
+                  ],
+                  range:[match.range]
+                }
+              } 
+            })
+            const result = Object.keys(extractMap).map(key=>extractMap[key])
+            webview.postMessage({
+              type: EVENT_MAP.extractResult,
+              data: result
+            })
+          }
+
           break
 
         default:

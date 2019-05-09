@@ -8,10 +8,22 @@ export enum SAVE_TYPE {
   i18n
 }
 
-const lineToUpperCase = str => {
+export const lineToUpperCase = str => {
   return str.replace(/(-\w)/g, $1 => {
     return $1[1].toUpperCase()
   })
+}
+
+export function replace(type: SAVE_TYPE, key: string, range: vscode.Range) {
+  const value = type === SAVE_TYPE.$t ? `{{$t('${key}')}}` : `i18n.t('${key}')`;
+  if (type === SAVE_TYPE.i18n) {
+    const newStart = range.start.with(range.start.line, range.start.character - 1);
+    const newEnd = range.end.with(range.end.line, range.end.character + 1);
+    range = range.with(newStart, newEnd);
+  }
+  return vscode.window.activeTextEditor.edit(editBuilder => {
+    editBuilder.replace(range, value);
+  });
 }
 
 const transAndRefactor = async ({
@@ -81,21 +93,7 @@ const transAndRefactor = async ({
   }
 
   // 替换内容
-  vscode.window.activeTextEditor.edit(editBuilder => {
-    const value =
-      type === SAVE_TYPE.$t ? `{{$t('${key}')}}` : `i18n.t('${key}')`
-
-    if (type === SAVE_TYPE.i18n) {
-      const newStart = range.start.with(
-        range.start.line,
-        range.start.character - 1
-      )
-      const newEnd = range.end.with(range.end.line, range.end.character + 1)
-      range = range.with(newStart, newEnd)
-    }
-
-    editBuilder.replace(range, value)
-  })
+  replace(type, key, range);
 
   // 写入翻译
   const transZhCN = transData.find(item => item.lng === 'zh-CN')
@@ -110,3 +108,6 @@ const transAndRefactor = async ({
 }
 
 export default transAndRefactor
+
+
+

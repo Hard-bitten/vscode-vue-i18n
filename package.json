@@ -33,7 +33,7 @@
     "commands": [
       {
         "command": "extension.vue-i18n.transCenter",
-        "title": "翻译当前文件的i18n",
+        "title": "vue-i18n: 翻译当前文件的i18n",
         "icon": {
           "light": "./static/icon-translate.svg",
           "dark": "./static/icon-translate.svg"
@@ -42,6 +42,10 @@
       {
         "command": "extension.vue-i18n.config",
         "title": "vue-i18n: 手动配置路径"
+      },
+      {
+        "command": "extension.vue-i18n.replaceCommon",
+        "title": "vue-i18n: 替换公共字符串到$t"
       },
       {
         "command": "extension.vue-i18n.auto-init",
@@ -80,6 +84,21 @@
           "type": "string",
           "default": "",
           "description": "翻译文件的目录（相对于根目录）"
+        },
+        "vue-i18n.markStringLiterals": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mark string literals in editor so you can quickly spot on them"
+        },
+        "vue-i18n.showOverviewRuler": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show non-English letter position on the overview ruler"
+        },
+        "vue-i18n.markColor": {
+          "type": "string",
+          "default": "#f40",
+          "description": "The color of matched non-English letters"
         }
       }
     }

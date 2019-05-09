@@ -108,6 +108,11 @@ class I18nFiles {
     })
   }
 
+  getAllTrans(filePath: string){
+    const i18nFile = this.getI18nFileByPath(filePath)
+    return i18nFile.getAllTrans()
+  }
+  
   writeTrans(filePath: string, i18nItem: II18nItem) {
     const i18nFile = this.getI18nFileByPath(filePath)
     i18nFile.writeTransByKey(i18nItem.key, i18nItem.transItems)

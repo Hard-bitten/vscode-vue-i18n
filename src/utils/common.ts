@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { join } from 'path'
-
+import * as _ from 'lodash'
 const configPrefix = 'vue-i18n'
 
 export default class Common {
@@ -51,5 +51,27 @@ export default class Common {
     return Math.random()
       .toString(36)
       .substr(2, len)
+  }
+
+  /**
+   * 将对象拍平
+   * @param obj 原始对象
+   * @param prefix
+   */
+  public static flatten(obj, prefix?) {
+    var propName = prefix ? prefix + '.' : '',
+      ret = {};
+
+    for (var attr in obj) {
+      if (_.isArray(obj[attr])) {
+        var len = obj[attr].length;
+        ret[attr] = obj[attr].join(',');
+      } else if (typeof obj[attr] === 'object') {
+        _.extend(ret, this.flatten(obj[attr], propName + attr));
+      } else {
+        ret[propName + attr] = obj[attr];
+      }
+    }
+    return ret;
   }
 }

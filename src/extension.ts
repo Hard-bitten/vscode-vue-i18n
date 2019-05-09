@@ -15,7 +15,10 @@ export async function activate(ctx: vscode.ExtensionContext) {
     require('./extract').default,
     require('./completion').default,
     require('./transCenter').default,
-    require('./annotation').default
+    require('./annotation').default,
+    require('./decorations').default,
+    require('./onekey').default,
+    // require('./linter').default
   ].forEach(module => ctx.subscriptions.push(module(ctx)))
 }
 
