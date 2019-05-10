@@ -11,9 +11,9 @@ import { debounce } from 'lodash'
  */
 function getChineseCharDecoration() {
   // 配置提示框样式
-  const hasOverviewRuler = vscode.workspace.getConfiguration('vue-i18n').get('showOverviewRuler');
-  const shouldMark = vscode.workspace.getConfiguration('vue-i18n').get('markStringLiterals');
-  const color = vscode.workspace.getConfiguration('vue-i18n').get('markColor');
+  const hasOverviewRuler = vscode.workspace.getConfiguration('vue-i18n').get('showOverviewRuler')
+  const shouldMark = vscode.workspace.getConfiguration('vue-i18n').get('markStringLiterals')
+  const color = vscode.workspace.getConfiguration('vue-i18n').get('markColor')
   return vscode.window.createTextEditorDecorationType({
     borderWidth: shouldMark ? '1px' : undefined,
     borderStyle: shouldMark ? 'dotted' : undefined,
@@ -25,52 +25,47 @@ function getChineseCharDecoration() {
     dark: {
       borderColor: shouldMark ? color : undefined
     }
-  });
+  })
 }
 
 /**
  * 更新标记
  */
 export function updateDecorations() {
-  const activeEditor = vscode.window.activeTextEditor;
-  const currentFilename = activeEditor.document.fileName;
-  const chineseCharDecoration = getChineseCharDecoration();
+  const activeEditor = vscode.window.activeTextEditor
+  const currentFilename = activeEditor.document.fileName
+  const chineseCharDecoration = getChineseCharDecoration()
   if (!activeEditor) {
-    return;
+    return
   }
 
-  const text = activeEditor.document.getText();
+  const text = activeEditor.document.getText()
   // 清空上一次的保存结果
-  let targetStrs = [];
-  let chineseChars: vscode.DecorationOptions[] = [];
-  let diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-  targetStrs = findTextInVue(text);
+  let targetStrs = []
+  let chineseChars: vscode.DecorationOptions[] = []
+  let diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map()
+  targetStrs = findTextInVue(text)
 
   targetStrs.map(match => {
-    const text = `<div class="action-container">`
-    const markdownText = new vscode.MarkdownString(
-      `检测到中文文案🇨🇳 ： ${match.text}\n\n---\n\n[提取为i18n](javascript:console.log('1111'))`
-    )
-    markdownText.isTrusted = true;
     const decoration = {
       range: match.range,
-      hoverMessage: markdownText
-    };
-    chineseChars.push(decoration);
-  });
+      hoverMessage: `检测到中文文案🇨🇳 ： ${match.text}`
+    }
+    chineseChars.push(decoration)
+  })
 
-  const shouldMark = vscode.workspace.getConfiguration('vue-i18n').get('markStringLiterals');
+  const shouldMark = vscode.workspace.getConfiguration('vue-i18n').get('markStringLiterals')
   if (shouldMark !== true) {
-    return;
+    return
   }
 
   /** 设置中文的提示 */
-  activeEditor.setDecorations(chineseCharDecoration, chineseChars);
+  activeEditor.setDecorations(chineseCharDecoration, chineseChars)
 
   return {
     targetStrs,
     chineseCharDecoration
-  };
+  }
 }
 
 function decorations(ctx: vscode.ExtensionContext){

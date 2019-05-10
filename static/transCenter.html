@@ -197,7 +197,8 @@
                 type="text"
                 v-model="i18nItem.key"
               />
-              <button @click="del(i18nItem)">删除</button>
+              <button @click="check(i18nItem)">查找位置</button>
+              <button @click="del(index)">删除</button>
             </h4>
             <li v-for="transItem in i18nItem.transItems" :key="transItem.lng">
               <span class="lng" :class="{active: transItem.lng === 'zh-CN'}">{{
@@ -324,6 +325,12 @@
               });
               this.transTasks = [];
             }, 300);
+          },
+          check(i18nItem){
+            // 查找位置，注意多个位置
+          },
+          del(index){
+            this.extractResult.splice(index,1)
           },
           writeTrans(i18nItem) {
             vscode.postMessage({ type: EVENT_MAP.writeTrans, data: i18nItem });

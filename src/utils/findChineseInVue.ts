@@ -8,7 +8,8 @@ const CHINESE_STR_REGEX = /[\u4e00-\u9fa5]/ug;
 export enum CHINESE_AREA {
   CONTENT,
   PROP,
-  JS
+  // JS,
+  NULL
 }
 
 /**
@@ -42,12 +43,14 @@ export function findTextInVue(code) {
           const trimEnd = new vscode.Position(attr.range.line, attr.range.end)
           const ranges = new vscode.Range(trimStart, trimEnd);
           const text = code.slice(attr.start, attr.end)
+          // TODO 此处应对属性进行细化，如属性类型，具体哪部分是中文
           matches.push({
             type: SAVE_TYPE.$t,
             range: ranges,
             text,
             area: CHINESE_AREA.PROP,
-            chineseText: text.match(CHINESE_STR_REGEX).join('')
+            chineseText: attr.value,
+            prop: attr.name
           })
         }
       })

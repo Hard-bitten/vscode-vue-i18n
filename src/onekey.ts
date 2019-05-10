@@ -1,35 +1,35 @@
 import * as vscode from 'vscode'
 import {replace,SAVE_TYPE} from './utils/transAndRefactor'
 import i18nFiles from './utils/I18nFiles'
-import {updateDecorations} from './decorations'
+import {findTextInVue,CHINESE_AREA} from './utils/findChineseInVue'
 import Common from './utils/common'
 import KeyDetector from './utils/KeyDetector'
 /**
  * 公共文案替换
  */
 function replaceCommmon(){
-  const activeEditor = vscode.window.activeTextEditor;
+  const activeEditor = vscode.window.activeTextEditor
   if (!activeEditor) {
-    return;
+    return
   }
   const { document } = activeEditor
-  const text = activeEditor.document.getText();
+  const text = activeEditor.document.getText()
 
-  const { targetStrs } = updateDecorations();
+  const targetStrs = findTextInVue(text)
   // 获取所有i18n,并把对象拍平
   const allTrans = i18nFiles.getAllTrans(document.fileName)
   const langObj = allTrans.filter(k=>k.lng==='zh-CN')[0].data
-  const finalLangObj = Common.flatten(langObj) as any;
+  const finalLangObj = Common.flatten(langObj) as any
 
-  const commandKeys = Object.keys(finalLangObj).filter(k => k.includes('common.'));
+  const commandKeys = Object.keys(finalLangObj).filter(k => k.includes('common.'))
   if (targetStrs.length === 0 || commandKeys.length === 0) {
-    vscode.window.showInformationMessage('没有找到可替换的公共文案');
-    return;
+    vscode.window.showInformationMessage('没有找到可替换的公共文案')
+    return
   }
 
   // 生成所有匹配的的公共文案
   const replaceableStrs = targetStrs.reduce((prev, curr) => {
-    const key = KeyDetector.findMatchKey(finalLangObj, curr.text);
+    const key = KeyDetector.findMatchKey(finalLangObj, curr.chineseText)
     if (key && key.startsWith('common.')) {
       return prev.concat({
             target: curr,
@@ -39,7 +39,7 @@ function replaceCommmon(){
     return prev
   }, [])
   if (replaceableStrs.length === 0) {
-    vscode.window.showInformationMessage('没有找到可替换的公共文案');
+    vscode.window.showInformationMessage('没有找到可替换的公共文案')
     return
   }
   vscode.window.showInformationMessage(
@@ -51,8 +51,22 @@ function replaceCommmon(){
       replaceableStrs.reverse()
         .reduce((prev: Promise<any>, obj) => {
           return prev.then(() => {
-            let {type,range} = obj.target
-            return replace(type,obj.key,range)
+            let {type,range,area,prop} = obj.target
+            var value = ''
+            switch(area){
+              case CHINESE_AREA.PROP:
+                value = type === SAVE_TYPE.$t ? `:${prop}="$t('${obj.key}')"` : `:${prop}="i18n.t('${obj.key}')"`
+                break
+              case CHINESE_AREA.CONTENT:
+                value = type === SAVE_TYPE.$t ? `{{$t('${obj.key}')}}` : `i18n.t('${obj.key}')`
+                break
+              // case CHINESE_AREA.JS:
+              //   value = type === SAVE_TYPE.$t ? `{{this.$t('${key}')}}` : `this.i18n.t('${key}')`
+              //   break
+              default:
+                break
+            }
+            return replace(type,obj.key,range,value)
           })
         }, Promise.resolve())
         .then(() => {

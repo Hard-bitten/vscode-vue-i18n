@@ -36,7 +36,7 @@ const decodingMap = {
   '&amp;': '&',
   '&#10;': '\n',
   '&#9;': '\t',
-  '&#39;': "'"
+  '&#39;': '\''
 }
 const encodedAttr = /&(?:lt|gt|quot|amp|#39);/g
 const encodedAttrWithNewLines = /&(?:lt|gt|quot|amp|#39|#10|#9);/g
@@ -230,7 +230,7 @@ export function parseHTML (html, options) {
       let end, attr
       // 判断属性
       while (!(end = html.match(startTagClose)) && (attr = html.match(dynamicArgAttribute) || html.match(attribute))) {
-        const trimAttr = attr[0].replace(/(^\s*)|(\s*$)/g, "");
+        const trimAttr = attr[0].replace(/(^\s*)|(\s*$)/g, '')
         attr.start = index
         advance(attr[0].length)
         attr.end = index
